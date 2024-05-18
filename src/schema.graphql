@@ -1,0 +1,14 @@
+type User {
+  id: ID!
+  name: String!
+  birthday: String!
+}
+
+type Query {
+  getUser(id: ID!): User
+  getAllUsers: [User]
+}
+
+type Mutation {
+  updateUser(id: ID!, name: String, birthday: String): User
+}
