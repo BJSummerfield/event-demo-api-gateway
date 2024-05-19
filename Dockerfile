@@ -1,30 +1,23 @@
-
 # Use an official Node.js runtime as a parent image
 FROM node:18
 
 # Set the working directory
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json
+# Copy the package.json and pnpm-lock.yaml
 COPY package.json pnpm-lock.yaml ./
 
-# Install pnpm
-RUN npm install -g pnpm
-
-# Install any needed packages
-RUN pnpm install
+# Install the dependencies
+RUN npm install -g pnpm && pnpm install
 
 # Copy the rest of the application
 COPY . .
 
-# Build the application
+# Build the TypeScript code
 RUN pnpm build
 
-# Make port 4000 available to the world outside this container
+# Expose the port the app runs on
 EXPOSE 4000
 
-# Define environment variable
-ENV PORT=4000
-
-# Run the application
-CMD [ "node", "dist/index.js" ]
+# Define the command to run the app
+CMD ["pnpm", "start"]
