@@ -29,6 +29,9 @@ importers:
       graphql-tools:
         specifier: ^9.0.1
         version: 9.0.1(graphql@16.8.1)
+      uuid:
+        specifier: ^9.0.1
+        version: 9.0.1
     devDependencies:
       '@types/graphql-fields':
         specifier: ^1.3.9
