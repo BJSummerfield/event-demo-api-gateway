@@ -107,7 +107,6 @@ const resolvers = {
             return null;
         }
     },
-},
-};
+}
 
 export default resolvers;
