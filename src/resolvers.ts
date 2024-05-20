@@ -1,8 +1,11 @@
+import graphqlFields from 'graphql-fields';
+
 const resolvers = {
     User: {
         name: async (parent: { id: string }, _: any, { dataSources }: any) => {
             try {
-                return await dataSources.nameService.getUserById(parent.id);
+                const user = await dataSources.nameService.getUserById(parent.id);
+                return user ? user : null;
             } catch (error: unknown) {
                 console.error(`Error fetching user with ID ${parent.id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
                 return null;
@@ -10,7 +13,8 @@ const resolvers = {
         },
         birthday: async (parent: { id: string }, _: any, { dataSources }: any) => {
             try {
-                return await dataSources.birthdayService.getBirthdayById(parent.id);
+                const birthday = await dataSources.birthdayService.getBirthdayById(parent.id);
+                return birthday ? birthday : null;
             } catch (error: unknown) {
                 console.error(`Error fetching birthday with ID ${parent.id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
                 return null;
@@ -34,40 +38,62 @@ const resolvers = {
     Mutation: {
         createUser: async (_: any, { id, username, birthday }: { id: string, username: string, birthday: string }, { dataSources }: any) => {
             try {
-                await dataSources.nameService.createUser({ id, username });
-                await dataSources.birthdayService.createBirthday({ id, birthday });
+                const name = await dataSources.nameService.createUser({ id, username });
+                const bday = await dataSources.birthdayService.createBirthday({ id, birthday });
+                console.log("Create Name: ", name);
+                console.log("Create Birthday :", bday);
                 return {
                     id,
-                    name: { id, username },
-                    birthday: { id, birthday },
+                    name: name.username,
+                    birthday: bday.birthday,
                 };
             } catch (error: unknown) {
                 console.error(`Error creating user with ID ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
                 return null;
             }
         },
-        updateUser: async (_: any, { id, username, birthday }: { id: string, username?: string, birthday?: string }, { dataSources }: any) => {
+        updateUser: async (_: any, { id, username, birthday }: { id: string, username?: string, birthday?: string }, { dataSources }: { dataSources: any }, info: any) => {
             try {
+                const requestedFields = graphqlFields(info);
+                const result: { id: string, name?: string, birthday?: string } = { id };  // Define result structure with optional fields
+
                 if (username) {
-                    await dataSources.nameService.updateUser(id, { username });
+                    const updateUserResult = await dataSources.nameService.updateUser(id, { username });
+                    if (!updateUserResult) {
+                        throw new Error('Failed to update username');
+                    }
+                    if (requestedFields.name) {
+                        result.name = updateUserResult.username;
+                    }
                 }
+
                 if (birthday) {
-                    await dataSources.birthdayService.updateBirthday(id, { birthday });
+                    const updateBirthdayResult = await dataSources.birthdayService.updateBirthday(id, { birthday });
+                    if (!updateBirthdayResult) {
+                        throw new Error('Failed to update birthday');
+                    }
+                    if (requestedFields.birthday) {
+                        result.birthday = updateBirthdayResult.birthday;
+                    }
                 }
 
-                const user = await dataSources.nameService.getUserById(id);
-                const userBirthday = await dataSources.birthdayService.getBirthdayById(id);
+                if (requestedFields.name && !username) {
+                    const user = await dataSources.nameService.getUserById(id);
+                    if (user) result.name = user.username;
+                }
 
-                return {
-                    id: user.id,
-                    name: user.username,
-                    birthday: userBirthday.birthday,
-                };
-            } catch (error: unknown) {
+                if (requestedFields.birthday && !birthday) {
+                    const userBirthday = await dataSources.birthdayService.getBirthdayById(id);
+                    if (userBirthday) result.birthday = userBirthday.birthday;
+                }
+
+                return result;
+            } catch (error) {
                 console.error(`Error updating user with ID ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                return null;
+                throw new Error(`Error updating user: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
         },
+
         deleteUser: async (_: any, { id }: { id: string }, { dataSources }: any) => {
             try {
                 await dataSources.nameService.deleteUser(id);

@@ -1,7 +1,7 @@
 import { RESTDataSource } from '@apollo/datasource-rest';
 
 class BirthdayService extends RESTDataSource {
-    override baseURL = 'http://localhost:8080/';
+    override baseURL = 'http://birthday-service:8080/';
 
     async getAllBirthdays() {
         try {

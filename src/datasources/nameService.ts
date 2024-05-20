@@ -1,7 +1,7 @@
 import { RESTDataSource } from '@apollo/datasource-rest';
 
 class NameService extends RESTDataSource {
-    override baseURL = 'http://localhost:5000/'; // Adjust to your Python service URL
+    override baseURL = 'http://name-service:8000/';
 
     async getAllUsers() {
         try {
