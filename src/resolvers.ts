@@ -24,7 +24,7 @@ const resolvers = {
     },
     Query: {
         getUser: async (_: any, { id }: { id: string }, ___: any) => {
-            return { id };  // Placeholder; actual fields are resolved in User type
+            return { id };
         },
         getAllUsers: async (_: any, __: any, { dataSources }: any) => {
             try {
@@ -57,43 +57,39 @@ const resolvers = {
         updateUser: async (_: any, { id, username, birthday }: { id: string, username?: string, birthday?: string }, { dataSources }: { dataSources: any }, info: any) => {
             try {
                 const requestedFields = graphqlFields(info);
-                const result: { id: string, name?: any, birthday?: any } = { id }; // Ensure 'name' and 'birthday' are typed as possibly any to reflect the data structure expected by the schema
+                const result: { id: string, name?: any, birthday?: any } = { id };
 
-                // Process the username update if provided and requested
                 if (username && requestedFields.name) {
                     const updateUserResult = await dataSources.nameService.updateUser(id, { username });
                     if (!updateUserResult) {
                         throw new Error('Failed to update username');
                     }
-                    result.name = { id, username: updateUserResult.username }; // Assuming 'name' returns an object with id and username
+                    result.name = { id, username: updateUserResult.username };
                 }
 
-                // Process the birthday update if provided and requested
                 if (birthday && requestedFields.birthday) {
                     const updateBirthdayResult = await dataSources.birthdayService.updateBirthday(id, { birthday });
                     if (!updateBirthdayResult) {
                         throw new Error('Failed to update birthday');
                     }
-                    result.birthday = { id, birthday: updateBirthdayResult.birthday }; // Assuming 'birthday' returns an object with id and birthday
+                    result.birthday = { id, birthday: updateBirthdayResult.birthday };
                 }
 
-                // Fetch name if not updated but requested
                 if (!username && requestedFields.name) {
                     const user = await dataSources.nameService.getUserById(id);
                     if (user) {
-                        result.name = { id, username: user.username }; // Assuming 'name' returns an object with id and username
+                        result.name = { id, username: user.username };
                     }
                 }
 
-                // Fetch birthday if not updated but requested
                 if (!birthday && requestedFields.birthday) {
                     const userBirthday = await dataSources.birthdayService.getBirthdayById(id);
                     if (userBirthday) {
-                        result.birthday = { id, birthday: userBirthday.birthday }; // Assuming 'birthday' returns an object with id and birthday
+                        result.birthday = { id, birthday: userBirthday.birthday };
                     }
                 }
 
-                return result; // Returns an object that matches the 'User' type structure expected by the schema
+                return result;
             } catch (error) {
                 console.error(`Error updating user with ID ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
                 throw new Error(`Error updating user: ${error instanceof Error ? error.message : 'Unknown error'}`);
