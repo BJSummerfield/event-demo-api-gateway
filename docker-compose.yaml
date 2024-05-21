@@ -1,9 +1,8 @@
-version: '3.8'
-
 services:
-  graphql-api:
+  microservices-demo-api-gateway:
     build: .
     ports:
       - "4000:4000"
     environment:
       PORT: 4000
+
