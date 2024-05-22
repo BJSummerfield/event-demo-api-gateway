@@ -24,3 +24,13 @@ type Mutation {
   updateUser(id: ID!, username: String, birthday: String): User
   deleteUser(id: ID!): User
 }
+
+type Subscription {
+  userEvent: UserEvent!
+}
+
+type UserEvent {
+  type: String!
+  user: User!
+}
+

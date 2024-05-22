@@ -1,5 +1,9 @@
 import graphqlFields from 'graphql-fields';
-import { v4 as uuidv4 } from 'uuid'
+import { PubSub } from 'graphql-subscriptions';
+import { v4 as uuidv4 } from 'uuid';
+
+const pubsub = new PubSub();
+const USER_EVENT = 'USER_EVENT';
 
 const resolvers = {
     User: {
@@ -44,11 +48,13 @@ const resolvers = {
                 const bday = await dataSources.birthdayService.createBirthday({ id, birthday });
                 console.log("Create Name: ", name);
                 console.log("Create Birthday :", bday);
-                return {
+                const user = {
                     id,
-                    name: name.username,
-                    birthday: bday.birthday,
+                    name: { id, username: name.username },
+                    birthday: { id, birthday: bday.birthday },
                 };
+                pubsub.publish(USER_EVENT, { userEvent: { type: 'USER_CREATED', user } });
+                return user;
             } catch (error) {
                 console.error(`Error creating user with ID ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
                 return null;
@@ -89,6 +95,7 @@ const resolvers = {
                     }
                 }
 
+                pubsub.publish(USER_EVENT, { userEvent: { type: 'USER_UPDATED', user: result } });
                 return result;
             } catch (error) {
                 console.error(`Error updating user with ID ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -100,12 +107,20 @@ const resolvers = {
             try {
                 await dataSources.nameService.deleteUser(id);
                 await dataSources.birthdayService.deleteBirthday(id);
-                return { id };
+                const user = { id };
+                pubsub.publish(USER_EVENT, { userEvent: { type: 'USER_DELETED', user } });
+                return user;
             } catch (error: unknown) {
                 console.error(`Error deleting user with ID ${id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
                 return null;
             }
         },
     },
-}
+    Subscription: {
+        userEvent: {
+            subscribe: () => pubsub.asyncIterator([USER_EVENT]),
+        },
+    },
+};
+
 export default resolvers;

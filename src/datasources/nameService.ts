@@ -1,7 +1,7 @@
 import { RESTDataSource } from '@apollo/datasource-rest';
 
 class NameService extends RESTDataSource {
-    override baseURL = 'http://name-service:8000/';
+    override baseURL = 'http://microservices-demo-name-service:8000/';
 
     async getAllUsers() {
         try {
