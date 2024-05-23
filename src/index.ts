@@ -35,7 +35,7 @@ useServer({ schema }, wsServer);
 
 // Start the standalone server
 (async () => {
-    const { birthdayService, nameService } = await checkDataSourceConnections();
+    const { birthdayService, nameService, userManagementService } = await checkDataSourceConnections();
 
     const { url } = await startStandaloneServer(server, {
         listen: { port: process.env.PORT ? parseInt(process.env.PORT) : 4000 },
@@ -43,6 +43,7 @@ useServer({ schema }, wsServer);
             dataSources: {
                 birthdayService,
                 nameService,
+                userManagementService,
             },
         }),
     });

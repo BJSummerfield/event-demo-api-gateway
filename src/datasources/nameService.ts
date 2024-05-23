@@ -3,62 +3,62 @@ import { RESTDataSource } from '@apollo/datasource-rest';
 class NameService extends RESTDataSource {
     override baseURL = 'http://microservices-demo-name-service:8000/';
 
-    async getAllUsers() {
+    async getAllNames() {
         try {
-            return await this.get('users');
+            return await this.get('names');
         } catch (error: unknown) {
             if (error instanceof Error) {
-                throw new Error(`Unable to fetch users: ${error.message}`);
+                throw new Error(`Unable to fetch names: ${error.message}`);
             }
-            throw new Error('Unable to fetch users');
+            throw new Error('Unable to fetch names');
         }
     }
 
-    async getUserById(id: string) {
+    async getNameById(id: string) {
         try {
-            return await this.get(`users/${id}`);
+            return await this.get(`name/${id}`);
         } catch (error: unknown) {
             if (error instanceof Error) {
-                throw new Error(`Unable to fetch user with ID ${id}: ${error.message}`);
+                throw new Error(`Unable to fetch name with ID ${id}: ${error.message}`);
             }
-            throw new Error(`Unable to fetch user with ID ${id}`);
+            throw new Error(`Unable to fetch name with ID ${id}`);
         }
     }
 
-    async createUser(user: { id: string; username: string }) {
+    async createName(name: { id: string; name: string }) {
         try {
-            return await this.post('users', {
-                body: user,
+            return await this.post('names', {
+                body: name,
             });
         } catch (error: unknown) {
             if (error instanceof Error) {
-                throw new Error(`Unable to create user: ${error.message}`);
+                throw new Error(`Unable to create name: ${error.message}`);
             }
-            throw new Error('Unable to create user');
+            throw new Error('Unable to create name');
         }
     }
 
-    async updateUser(id: string, user: { username: string }) {
+    async updateName(id: string, name: { name: string }) {
         try {
-            return await this.put(`users/${id}`, {
-                body: user,
+            return await this.put(`names/${id}`, {
+                body: name,
             });
         } catch (error: unknown) {
             if (error instanceof Error) {
-                throw new Error(`Unable to update user with ID ${id}: ${error.message}`);
+                throw new Error(`Unable to update name with ID ${id}: ${error.message}`);
             }
-            throw new Error(`Unable to update user with ID ${id}`);
+            throw new Error(`Unable to update name with ID ${id}`);
         }
     }
 
-    async deleteUser(id: string) {
+    async deleteName(id: string) {
         try {
-            return await this.delete(`users/${id}`);
+            return await this.delete(`names/${id}`);
         } catch (error: unknown) {
             if (error instanceof Error) {
-                throw new Error(`Unable to delete user with ID ${id}: ${error.message}`);
+                throw new Error(`Unable to delete name with ID ${id}: ${error.message}`);
             }
-            throw new Error(`Unable to delete user with ID ${id}`);
+            throw new Error(`Unable to delete name with ID ${id}`);
         }
     }
 }
