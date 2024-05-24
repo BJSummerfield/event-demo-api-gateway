@@ -34,7 +34,18 @@ type Subscription {
 }
 
 type UserEvent {
-  type: String!
-  user: User!
+  type: userEventType!
+  payload: UserEventPayload!
 }
 
+type UserEventPayload {
+  id: ID!
+  email: String
+  name: String
+  birthday: String
+}
+
+enum userEventType {
+  userCreated
+  userDeleted
+}
