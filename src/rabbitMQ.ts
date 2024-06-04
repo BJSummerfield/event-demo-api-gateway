@@ -4,7 +4,7 @@ import { AMQPPubSub } from 'graphql-amqp-subscriptions';
 const config = 'amqp://rabbitmq:5672/?heartbeat=30';
 const exchangeName = 'user_events';
 const queueName = 'graphql_subscription_queue';
-const routingKeys = ['userManagement.userCreated'];
+const routingKeys = ['userManagement.userCreated', 'userManagement.userDeleted']
 const maxRetries = 5;
 const retryDelay = 5000;
 
@@ -45,13 +45,17 @@ async function connectRabbitMQ(): Promise<void> {
 
             channel.consume(queueName, (msg) => {
                 if (msg) {
-                    console.log('Received message STRINGIFIED:', msg.content.toString());
-                    const eventKey = msg.fields.routingKey.split('.')[1];
+                    console.log('Received message:', msg.content.toString());
                     const payload = JSON.parse(msg.content.toString());
                     const data = payload.payload; // Directly use payload's data
                     console.log("payload", payload);
-                    console.log("data", data);
-                    pubsub.publish(eventKey, { userCreated: data }); // Publish the data directly
+                    const userEvent = {
+                        action: payload.eventType,
+                        data: data,
+
+                    }
+                    console.log("Event", userEvent);
+                    pubsub.publish("userUpdates", { "userUpdates": userEvent }); // Publish the data directly
                 }
             }, {
                 noAck: true,

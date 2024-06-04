@@ -1,6 +1,6 @@
 type User {
   id: ID!
-  email: String!
+  email: String
   name: Name
   birthday: Birthday
 }
@@ -29,9 +29,13 @@ type Mutation {
   deleteUser(id: ID!): User 
 }
 
+union UserUpdateData = User | Name | Birthday
+
+type UserUpdate {
+  action: String
+  data: UserUpdateData
+}
+
 type Subscription {
-  userCreated: User
-  userDeleted: ID
-  birthdayUpdated: Birthday
-  nameUpdated: Name
+  userUpdates: UserUpdate 
 }

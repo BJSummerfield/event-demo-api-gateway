@@ -119,11 +119,24 @@ const resolvers = {
         },
     },
     Subscription: {
-        userCreated: {
+        userUpdates: {
             subscribe: () => {
-                console.log('Subscribing to USER_CREATED');
-                return pubsub.asyncIterator('userCreated');
+                console.log('Subscribing to USER_UPDATES')
+                return pubsub.asyncIterator('userUpdates');
             },
+        },
+    },
+    UserUpdateData: {
+        __resolveType(userUpdateData: any) {
+            console.log('UserUpdateData', userUpdateData);
+            if (userUpdateData.email) {
+                return 'User';
+            } else if (userUpdateData.name) {
+                return 'Name';
+            } else if (userUpdateData.birthday) {
+                return 'Birthday';
+            }
+            return 'User';
         },
     },
 };
