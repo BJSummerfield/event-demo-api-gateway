@@ -30,22 +30,8 @@ type Mutation {
 }
 
 type Subscription {
-  userEvent: UserEvent!
-}
-
-type UserEvent {
-  type: userEventType!
-  payload: UserEventPayload!
-}
-
-type UserEventPayload {
-  id: ID!
-  email: String
-  name: String
-  birthday: String
-}
-
-enum userEventType {
-  userCreated
-  userDeleted
+  userCreated: User
+  userDeleted: ID
+  birthdayUpdated: Birthday
+  nameUpdated: Name
 }

@@ -5,18 +5,18 @@ import express from 'express';
 import { createServer } from 'http';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { WebSocketServer } from 'ws';
-import { loadSchemaSync } from '@graphql-tools/load';
-import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { useServer } from 'graphql-ws/lib/use/ws';
-import resolvers from './resolvers.js';
-import { rabbitMQConnector } from './rabbitMQ.js';
 import bodyParser from 'body-parser';
+import cors from 'cors';
+
+import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
+import { loadSchemaSync } from '@graphql-tools/load';
+import resolvers from './resolvers.js';
 import BirthdayService from './datasources/birthdayService.js';
 import NameService from './datasources/nameService.js';
 import UserManagementService from './datasources/userManagementService.js';
 
 const PORT = 4000;
-const pubsub = rabbitMQConnector.getPubSub();
 
 const typeDefs = loadSchemaSync('src/schema.graphql', {
     loaders: [new GraphQLFileLoader()],
@@ -31,21 +31,16 @@ const wsServer = new WebSocketServer({
     server: httpServer,
     path: '/graphql',
 });
+
 const serverCleanup = useServer({ schema }, wsServer);
 
 const server = new ApolloServer({
-    schema: makeExecutableSchema({ typeDefs, resolvers }),
+    schema,
     plugins: [
         ApolloServerPluginDrainHttpServer({ httpServer }),
         {
             async serverWillStart() {
                 return {
-                    dataSources: {
-                        birthdayService: new BirthdayService(),
-                        nameService: new NameService(),
-                        userManagementService: new UserManagementService(),
-                    },
-                    pubsub,
                     async drainServer() {
                         await serverCleanup.dispose();
                     },
@@ -56,8 +51,16 @@ const server = new ApolloServer({
 });
 
 await server.start();
-app.use('/graphql', bodyParser.json(), expressMiddleware(server));
-
+app.use('/graphql', cors<cors.CorsRequest>(), bodyParser.json(), expressMiddleware(server, {
+    context: async () => ({
+        dataSources: {
+            birthdayService: new BirthdayService(),
+            nameService: new NameService(),
+            userManagementService: new UserManagementService(),
+        },
+    }),
+}))
+// Now that our HTTP server is fully set up, actually listen.
 httpServer.listen(PORT, () => {
     console.log(`🚀 Query endpoint ready at http://localhost:${PORT}/graphql`);
     console.log(`🚀 Subscription endpoint ready at ws://localhost:${PORT}/graphql`);

@@ -1,4 +1,5 @@
 import graphqlFields from 'graphql-fields';
+import { pubsub } from './rabbitMQ.js';
 
 interface User {
     id: string;
@@ -118,23 +119,10 @@ const resolvers = {
         },
     },
     Subscription: {
-        userEvent: {
-            subscribe: (_: any, __: any, { pubsub }: any) => {
-                console.log('Subscribing to USER_EVENT');
-                return pubsub.asyncIterator(['userManagement.userCreated', 'userManagement.userDeleted']);
-            },
-            resolve: (payload: any) => {
-                console.log(`Received payload: ${JSON.stringify(payload)}`);
-                if (!payload) return null;
-                return {
-                    type: payload.type,
-                    payload: {
-                        id: payload.payload.id,
-                        email: payload.payload.email,
-                        name: payload.payload.name,
-                        birthday: payload.payload.birthday,
-                    },
-                };
+        userCreated: {
+            subscribe: () => {
+                console.log('Subscribing to USER_CREATED');
+                return pubsub.asyncIterator('userCreated');
             },
         },
     },

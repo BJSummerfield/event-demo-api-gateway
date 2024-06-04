@@ -3,6 +3,18 @@ services:
     build: .
     ports:
       - "4000:4000"
+    depends_on:
+      - rabbitmq
     environment:
       PORT: 4000
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

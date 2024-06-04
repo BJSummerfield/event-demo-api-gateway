@@ -1,55 +1,79 @@
-// RabbitMQConnector.ts
-import { AmqpPubSub } from 'graphql-rabbitmq-subscriptions';
-import { IConsoleLoggerSettings } from '@cdm-logger/server'
-import * as Logger from 'bunyan'
+import * as amqp from 'amqplib';
+import { AMQPPubSub } from 'graphql-amqp-subscriptions';
 
-const settings: IConsoleLoggerSettings = {
-    level: 'info', // Optional: default 'info' ('trace'|'info'|'debug'|'warn'|'error'|'fatal')
-    mode: 'short' // Optional: default 'short' ('short'|'long'|'dev'|'raw')
-}
+const config = 'amqp://rabbitmq:5672/?heartbeat=30';
+const exchangeName = 'user_events';
+const queueName = 'graphql_subscription_queue';
+const routingKeys = ['userManagement.userCreated'];
+const maxRetries = 5;
+const retryDelay = 5000;
 
-class RabbitMQConnector {
-    private pubsub!: AmqpPubSub;
-    private config: string;
-    private maxRetries: number;
-    private retries: number;
-    private logger: Logger;
+let pubsub: AMQPPubSub;
 
-    constructor(config: string, maxRetries = 10) {
-        this.config = config;
-        this.maxRetries = maxRetries;
-        this.retries = 0;
-        this.connectWithRetry();
-        this.logger = Logger.createLogger({ name: 'RabbitMQConnector', level: settings.level })
-    }
+async function connectRabbitMQ(): Promise<void> {
+    let retries = 0;
+    while (retries < maxRetries) {
+        try {
+            const connection = await amqp.connect(config);
+            pubsub = new AMQPPubSub({
+                connection,
+                exchange: {
+                    name: exchangeName,
+                    type: 'topic',
+                    options: {
+                        durable: false,
+                        autoDelete: false,
+                    },
+                },
+                queue: {
+                    name: queueName,
+                    options: {
+                        exclusive: false,
+                        durable: true,
+                        autoDelete: false,
+                    },
+                },
+            });
 
-    private connectWithRetry() {
-        const createPubSub = () => new AmqpPubSub({
-            config: this.config,
-            logger: this.logger,
-            connectionListener: (err) => {
-                if (err) {
-                    if (this.retries < this.maxRetries) {
-                        this.retries++;
-                        console.log(`Retrying RabbitMQ connection (${this.retries}/${this.maxRetries})...`);
-                        setTimeout(createPubSub, 5000); // Retry after 5 seconds
-                    } else {
-                        console.log('Max retries reached. Could not connect to RabbitMQ.');
-                        process.exit(1); // Exit process if max retries are reached
-                    }
-                } else {
-                    this.retries = 0; // Reset retries on successful connection
-                    console.log('Connected to RabbitMQ.');
-                }
+            const channel = await connection.createChannel();
+            await channel.assertExchange(exchangeName, 'topic', { durable: false, autoDelete: false });
+            await channel.assertQueue(queueName, { exclusive: false });
+
+            for (const key of routingKeys) {
+                await channel.bindQueue(queueName, exchangeName, key);
             }
-        });
 
-        this.pubsub = createPubSub();
-    }
+            channel.consume(queueName, (msg) => {
+                if (msg) {
+                    console.log('Received message STRINGIFIED:', msg.content.toString());
+                    const eventKey = msg.fields.routingKey.split('.')[1];
+                    const payload = JSON.parse(msg.content.toString());
+                    const data = payload.payload; // Directly use payload's data
+                    console.log("payload", payload);
+                    console.log("data", data);
+                    pubsub.publish(eventKey, { userCreated: data }); // Publish the data directly
+                }
+            }, {
+                noAck: true,
+            });
 
-    public getPubSub(): AmqpPubSub {
-        return this.pubsub;
+            console.log('Connected to RabbitMQ and exchange set up.');
+            break;
+        } catch (error) {
+            retries++;
+            console.error(`Failed to connect to RabbitMQ. Attempt ${retries}/${maxRetries}:`, error);
+            if (retries >= maxRetries) {
+                console.error('Max retries reached, failing startup.');
+                process.exit(1);
+            }
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+        }
     }
 }
 
-export const rabbitMQConnector = new RabbitMQConnector('amqp://rabbitmq:5672/');
+// Ensure connection is established before exporting
+(async () => {
+    await connectRabbitMQ();
+})();
+
+export { pubsub };
