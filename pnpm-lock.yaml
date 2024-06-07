@@ -41,9 +41,6 @@ importers:
       graphql-amqp-subscriptions:
         specifier: ^2.0.0
         version: 2.0.0(amqplib@0.10.4)(graphql-subscriptions@2.0.0(graphql@16.8.1))(graphql@16.8.1)
-      graphql-fields:
-        specifier: ^2.0.3
-        version: 2.0.3
       graphql-subscriptions:
         specifier: ^2.0.0
         version: 2.0.0(graphql@16.8.1)
@@ -574,9 +571,6 @@ packages:
       amqplib: 0.x
       graphql: 16.x
       graphql-subscriptions: 2.x
-
-  graphql-fields@2.0.3:
-    resolution: {integrity: sha512-x3VE5lUcR4XCOxPIqaO4CE+bTK8u6gVouOdpQX9+EKHr+scqtK5Pp/l8nIGqIpN1TUlkKE6jDCCycm/WtLRAwA==}
 
   graphql-subscriptions@2.0.0:
     resolution: {integrity: sha512-s6k2b8mmt9gF9pEfkxsaO1lTxaySfKoEJzEfmwguBbQ//Oq23hIXCfR1hm4kdh5hnR20RdwB+s3BCb+0duHSZA==}
@@ -1598,8 +1592,6 @@ snapshots:
       uuid: 9.0.1
     transitivePeerDependencies:
       - supports-color
-
-  graphql-fields@2.0.3: {}
 
   graphql-subscriptions@2.0.0(graphql@16.8.1):
     dependencies:

@@ -1,12 +1,4 @@
-import graphqlFields from 'graphql-fields';
 import { pubsub } from './rabbitMQ.js';
-
-interface User {
-    id: string;
-    email: string;
-    name?: { id: string, username?: string };
-    birthday?: { id: string, birthday?: string };
-}
 
 function logError(message: string, error: unknown): void {
     console.error(`${message}: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -87,22 +79,22 @@ const resolvers = {
                 return null;
             }
         },
-        updateUser: async (_: any, { id, name, birthday }: { id: string; name?: string; birthday?: string }, { dataSources }: any, info: any) => {
+        updateBirthday: async (_: any, { id, birthday }: { id: string; birthday: string }, { dataSources }: any) => {
             try {
-                const requestedFields = graphqlFields(info);
-                const result: Partial<User> = { id };
-                if (name && requestedFields.name) {
-                    const updateNameResult = await dataSources.nameService.updateName(id, { name });
-                    result.name = updateNameResult ? { id, username: updateNameResult.name } : throwNotFoundError('Name update', id);
-                }
-                if (birthday && requestedFields.birthday) {
-                    const updateBirthdayResult = await dataSources.birthdayService.updateBirthday(id, { birthday });
-                    result.birthday = updateBirthdayResult ? { id, birthday: updateBirthdayResult.birthday } : throwNotFoundError('Birthday update', id);
-                }
-                return
+                const updateBirthdayResult = await dataSources.birthdayService.updateBirthday(id, { birthday });
+                return updateBirthdayResult ? null : throwNotFoundError('Birthday update', id);
             } catch (error) {
-                logError(`Error updating user with ID ${id}`, error);
-                throw new Error(`Error updating user: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                logError(`Error updating birthday for user with ID ${id}`, error);
+                throw new Error(`Error updating birthday: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            }
+        },
+        updateName: async (_: any, { id, name }: { id: string; name: string }, { dataSources }: any) => {
+            try {
+                const updateNameResult = await dataSources.nameService.updateName(id, { name });
+                return updateNameResult ? null : throwNotFoundError('Name update', id);
+            } catch (error) {
+                logError(`Error updating name for user with ID ${id}`, error);
+                throw new Error(`Error updating name: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
         },
         deleteUser: async (_: any, { id }: { id: string }, { dataSources }: any) => {
