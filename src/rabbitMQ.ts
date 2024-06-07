@@ -4,7 +4,7 @@ import { AMQPPubSub } from 'graphql-amqp-subscriptions';
 const config = 'amqp://rabbitmq:5672/?heartbeat=30';
 const exchangeName = 'user_events';
 const queueName = 'graphql_subscription_queue';
-const routingKeys = ['userManagement.userCreated', 'userManagement.userDeleted']
+const routingKeys = ['userManagement.userCreated', 'userManagement.userDeleted', "userManagement.birthdayUpdated", "userManagement.nameUpdated"]
 const maxRetries = 5;
 const retryDelay = 5000;
 

@@ -81,7 +81,7 @@ const resolvers = {
             try {
                 const user = await dataSources.userManagementService.createUser(email);
                 console.log(`Created user ${user}`);
-                return { id: user.id, email: user.email };
+                return
             } catch (error) {
                 logError('Error creating user', error);
                 return null;
@@ -99,7 +99,7 @@ const resolvers = {
                     const updateBirthdayResult = await dataSources.birthdayService.updateBirthday(id, { birthday });
                     result.birthday = updateBirthdayResult ? { id, birthday: updateBirthdayResult.birthday } : throwNotFoundError('Birthday update', id);
                 }
-                return result;
+                return
             } catch (error) {
                 logError(`Error updating user with ID ${id}`, error);
                 throw new Error(`Error updating user: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -111,7 +111,7 @@ const resolvers = {
                 if (!user) {
                     throwNotFoundError('User', id);
                 }
-                return user;
+                return
             } catch (error) {
                 logError(`Error deleting user with ID ${id}`, error);
                 throw error;
